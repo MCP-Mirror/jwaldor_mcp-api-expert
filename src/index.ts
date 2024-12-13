@@ -11,12 +11,8 @@ import {
 import { z } from "zod";
 import { promises as fs } from "fs";
 import path from "path";
-import axios from "axios";
 import { Command } from "commander";
 import { installCommand } from "./install.js";
-
-const CLAUDE_ENVIRONMENT_PATH =
-  "/Users/jacobwaldor/Documents/ClaudeEnvironment";
 
 // Define Zod schemas for validation
 const RequestSchema = z.object({
@@ -25,21 +21,6 @@ const RequestSchema = z.object({
   headers: z.record(z.string(), z.string()),
   body: z.any(),
 });
-
-const environmentSchema = z.object({
-  file_name: z.string(),
-  file_content: z.string(),
-});
-
-const apiDocSchema = z.object({
-  api_doc_name: z.string(),
-  api_doc_content: z.string(),
-});
-
-const getFileSchema = z.object({
-  file_name: z.string(),
-});
-
 // Create server instance
 const server = new Server(
   {
@@ -83,119 +64,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["type", "url", "headers", "body"],
         },
       },
-      {
-        name: "save_api_doc",
-        description: "Save an api doc to a file in the apis folder",
-        inputSchema: {
-          type: "object",
-          properties: {
-            file_name: {
-              type: "string",
-              description: "What the file will be named",
-            },
-            file_content: {
-              type: "string",
-              description: "Content of the file to save",
-            },
-          },
-          required: ["file_name", "file_content"],
-        },
-      },
-      {
-        name: "get_file",
-        description: "Get a file from the apis folder, such as an api doc",
-        inputSchema: {
-          type: "object",
-          properties: {
-            file_name: {
-              type: "string",
-              description: "Name of the file to get",
-            },
-          },
-          required: ["file_name"],
-        },
-      },
-      {
-        name: "list_files",
-        description: "List all files in the api docs folder.",
-        inputSchema: {
-          type: "object",
-          properties: {},
-          required: [],
-        },
-      },
     ],
   };
 });
 
 // Add this near other helper functions
 const execPromise = promisify(exec);
-async function makeRequestOld(
-  url: string,
-  type: string,
-  headers: Record<string, string>,
-  body: any
-) {
-  try {
-    let response;
-    switch (type) {
-      case "GET":
-        response = await axios.get(url, {
-          headers,
-          data: body,
-        });
-        break;
-      case "POST":
-        response = await axios.post(url, body, {
-          headers,
-        });
-        break;
-      case "PUT":
-        response = await axios.put(url, body, {
-          headers,
-        });
-        break;
-      case "DELETE":
-        response = await axios.delete(url, {
-          headers,
-          data: body,
-        });
-        break;
-      default:
-        throw new Error(`Unknown request type: ${type}`);
-    }
-    if (response.status !== 200) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response;
-  } catch (error) {
-    console.error("Error making NWS request:", error);
-    return `There was an error making the request: ${error}`;
-  }
-}
-
-export async function saveAPIDocToFile(fileName: string, contents: string) {
-  try {
-    // Create directory if it doesn't exist
-    await execPromise(`mkdir -p ${CLAUDE_ENVIRONMENT_PATH}`);
-
-    // Use echo to write the value directly to a file with the given name
-    const command = `echo '${contents}' > ${path.join(
-      CLAUDE_ENVIRONMENT_PATH,
-      fileName
-    )}`;
-    await execPromise(command);
-  } catch (error) {
-    console.error(`Error saving environment variable to ${fileName}:`, error);
-    throw error;
-  }
-}
-export async function getFile(fileName: string) {
-  const filePath = path.join(CLAUDE_ENVIRONMENT_PATH, fileName);
-  const fileContent = await fs.readFile(filePath, "utf8");
-  return fileContent;
-}
 
 // Replace makeRequest function
 export async function makeRequest(
@@ -205,40 +79,27 @@ export async function makeRequest(
   body: any
 ) {
   try {
-    // Convert headers to curl format
-    const headerArgs = Object.entries(headers)
-      .map(([key, value]) => `-H "${key}: ${value}"`)
-      .join(" ");
+    const response = await fetch(url, {
+      method: type,
+      headers,
+      body:
+        body && (type === "POST" || type === "PUT")
+          ? JSON.stringify(body)
+          : undefined,
+    });
 
-    // Construct the curl command
-    let curlCommand = `curl -X ${type} ${headerArgs}`;
-
-    // Add body for POST/PUT requests
-    if (body && (type === "POST" || type === "PUT")) {
-      curlCommand += ` -d '${JSON.stringify(body)}'`;
-    }
-
-    // Add the URL and some default options
-    curlCommand += ` "${url}" -s -w "\nHTTP_STATUS:%{http_code}"`;
-
-    const { stdout, stderr } = await execPromise(curlCommand);
-
-    // Parse the response
-    const [responseBody, statusLine] = stdout.split("\nHTTP_STATUS:");
-    const status = parseInt(statusLine, 10);
-
-    if (status !== 200) {
-      throw new Error(`HTTP error! status: ${status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return {
-      status,
-      data: responseBody.trim(),
-      headers: {}, // Note: You can add -i flag to curl to get headers if needed
+      status: response.status,
+      data: await response.text(),
+      headers: Object.fromEntries(response.headers),
     };
   } catch (error) {
-    console.error("Error making curl request:", error);
-    return `There was an error making the request: ${error}`;
+    console.error("Error making request:", error);
+    throw error;
   }
 }
 
@@ -281,38 +142,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         ],
       };
-    } else if (name === "save_api_doc") {
-      const { file_name, file_content } = environmentSchema.parse(args);
-      await saveAPIDocToFile(file_name, file_content);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Saved file to ${file_name}`,
-          },
-        ],
-      };
-    } else if (name === "get_file") {
-      const { file_name } = getFileSchema.parse(args);
-      const fileContent = await getFile(file_name);
-      return {
-        content: [
-          {
-            type: "text",
-            text: fileContent,
-          },
-        ],
-      };
-    } else if (name === "list_files") {
-      const files = await fs.readdir(CLAUDE_ENVIRONMENT_PATH);
-      return {
-        content: [
-          {
-            type: "text",
-            text: files.join("\n"),
-          },
-        ],
-      };
     } else {
       throw new Error(`Unknown tool: ${name}`);
     }
@@ -327,12 +156,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     throw error;
   }
 });
-
-// async function main() {
-//   const transport = new StdioServerTransport();
-//   await server.connect(transport);
-//   console.error("Create Cron MCP Server running on stdio");
-// }
 
 const createServer = async () => {
   try {
