@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { exec } from "child_process";
 
-import { promisify } from "util";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -67,9 +65,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     ],
   };
 });
-
-// Add this near other helper functions
-const execPromise = promisify(exec);
 
 // Replace makeRequest function
 export async function makeRequest(
