@@ -1,5 +1,23 @@
-This package lets you connect Claude to any API. All you have to do is provide the relevant docs and your environment variable in your message to Claude.
+# MCP API Connect
 
-To set up, do the following:
-First, run npm i -g mcp-api-connect.
-Then run mcpapiconnect install, and restart Claude.
+Connect Claude to any API. All you have to do is providing API documentation and API keys in a message.
+
+## Installation
+
+1. Install the package globally:
+
+```bash
+npm i -g mcpapiconnect
+```
+
+2. Run the setup command:
+
+```bash
+mcpapiconnect install
+```
+
+3. Restart Claude
+
+## Usage
+
+Simply include your API documentation and environment variables in your message to Claude, and it will be able to interact with your API automatically.
