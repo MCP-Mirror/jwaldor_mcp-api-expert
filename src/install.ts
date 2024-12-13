@@ -30,7 +30,7 @@ export function updateClaudeDesktopConfig() {
 
   try {
     let config: {
-      mcpServers?: { mcprestapis?: { command: string; args?: string[] } };
+      mcpServers?: { mcpapiconnect?: { command: string; args?: string[] } };
     } = {};
     try {
       config = JSON.parse(fs.readFileSync(configPath, "utf8"));
@@ -41,13 +41,13 @@ export function updateClaudeDesktopConfig() {
     config.mcpServers = config.mcpServers || {};
 
     if (process.platform === "win32") {
-      config.mcpServers["mcprestapis"] = {
+      config.mcpServers["mcpapiconnect"] = {
         command: "C:\\Program Files\\nodejs\\node.exe",
         args: [scriptPath],
       };
     } else {
-      config.mcpServers["mcprestapis"] = {
-        command: `mcprestapis`,
+      config.mcpServers["mcpapiconnect"] = {
+        command: `mcpapiconnect`,
         args: ["serve"],
       };
     }

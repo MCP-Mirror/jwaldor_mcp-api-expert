@@ -1,5 +1,5 @@
 {
-  "name": "mcp-api-lib",
+  "name": "mcp-api-connect",
   "type": "module",
   "version": "1.0.0",
   "description": "A tool for making HTTP requests through the Model Context Protocol (MCP)",
@@ -29,6 +29,6 @@
     "url": "git+https://github.com/jwaldor/mcp-api-expert.git"
   },
   "bin": {
-    "mcprestapis": "./build/index.js"
+    "mcpapiconnect": "./build/index.js"
   }
 }
