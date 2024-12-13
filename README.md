@@ -7,7 +7,7 @@ Connect Claude to any API. All you have to do is providing API documentation and
 1. Install the package globally:
 
 ```bash
-npm i -g mcpapiconnect
+npm i -g mcp-api-connect
 ```
 
 2. Run the setup command:
