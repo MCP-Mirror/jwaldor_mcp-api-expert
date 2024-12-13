@@ -2,15 +2,15 @@
   "name": "mcp-api-expert",
   "type": "module",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A tool for making HTTP requests through the Model Context Protocol (MCP)",
+  "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["mcp", "api", "http", "claude", "anthropic"],
+  "author": "Jacob Waldor",
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.3",
     "@modelcontextprotocol/server-memory": "^0.6.2",
@@ -22,6 +22,10 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwaldor/mcp-api-expert.git"
   },
   "bin": {
     "mcprestapis": "./build/index.js"
