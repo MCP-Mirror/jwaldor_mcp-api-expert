@@ -84,9 +84,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "save_environment_variable_or_api_doc",
-        description:
-          "Save an environment variable or api doc to a file in the apis folder",
+        name: "save_api_doc",
+        description: "Save an api doc to a file in the apis folder",
         inputSchema: {
           type: "object",
           properties: {
@@ -104,8 +103,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "get_file",
-        description:
-          "Get a file from the apis folder, such as an environment variable or api doc",
+        description: "Get a file from the apis folder, such as an api doc",
         inputSchema: {
           type: "object",
           properties: {
@@ -119,8 +117,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_files",
-        description:
-          "List all files in the apis folder. They might include API docs or environment variables",
+        description: "List all files in the api docs folder.",
         inputSchema: {
           type: "object",
           properties: {},
@@ -178,16 +175,13 @@ async function makeRequestOld(
   }
 }
 
-export async function saveEnvironmentVariableToFile(
-  fileName: string,
-  variableValue: string
-) {
+export async function saveAPIDocToFile(fileName: string, contents: string) {
   try {
     // Create directory if it doesn't exist
     await execPromise(`mkdir -p ${CLAUDE_ENVIRONMENT_PATH}`);
 
     // Use echo to write the value directly to a file with the given name
-    const command = `echo '${variableValue}' > ${path.join(
+    const command = `echo '${contents}' > ${path.join(
       CLAUDE_ENVIRONMENT_PATH,
       fileName
     )}`;
@@ -287,9 +281,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         ],
       };
-    } else if (name === "save_environment_variable_or_api_doc") {
+    } else if (name === "save_api_doc") {
       const { file_name, file_content } = environmentSchema.parse(args);
-      await saveEnvironmentVariableToFile(file_name, file_content);
+      await saveAPIDocToFile(file_name, file_content);
       return {
         content: [
           {
@@ -350,10 +344,6 @@ const createServer = async () => {
   }
 };
 const runServer = new Command("serve").action(createServer);
-// main().catch((error) => {
-//   console.error("Fatal error in main():", error);
-//   process.exit(1);
-// });
 
 const program = new Command();
 program.addCommand(runServer);
