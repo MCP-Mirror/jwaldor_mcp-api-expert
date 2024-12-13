@@ -1,7 +1,7 @@
 {
   "name": "mcp-api-connect",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool for making HTTP requests through the Model Context Protocol (MCP)",
   "main": "build/index.js",
   "scripts": {
