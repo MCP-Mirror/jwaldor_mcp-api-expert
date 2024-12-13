@@ -1,12 +1,13 @@
 {
-  "name": "mcp-api-expert",
+  "name": "mcp-api-lib",
   "type": "module",
   "version": "1.0.0",
   "description": "A tool for making HTTP requests through the Model Context Protocol (MCP)",
   "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepublish": "npm run build"
   },
   "keywords": ["mcp", "api", "http", "claude", "anthropic"],
   "author": "Jacob Waldor",
